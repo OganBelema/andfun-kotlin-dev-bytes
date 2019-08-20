@@ -28,9 +28,6 @@ import kotlinx.coroutines.*
 
 class VideosRepository(private val database: VideosDatabase) {
 
-    private val repositoryJob = Job()
-
-    private val scope = CoroutineScope(repositoryJob)
 
     val videos: LiveData<List<Video>> = Transformations.map(database.videoDao.getVideos()) {
         it.asDomainModel()
@@ -38,16 +35,11 @@ class VideosRepository(private val database: VideosDatabase) {
 
     suspend fun refreshVideos() {
 
-        scope.launch {
-
-            withContext(Dispatchers.Main) {
+        withContext(Dispatchers.Main) {
                 val playlist = Network.devbytes.getPlaylist()
                 database.videoDao.insertAll(*playlist.asDatabaseModel())
-            }
         }
     }
 
-    fun clear(){
-        repositoryJob.cancel()
-    }
+
 }
