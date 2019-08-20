@@ -16,3 +16,38 @@
  */
 
 package com.example.android.devbyteviewer.repository
+
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
+import com.example.android.devbyteviewer.database.VideosDatabase
+import com.example.android.devbyteviewer.database.asDomainModel
+import com.example.android.devbyteviewer.domain.Video
+import com.example.android.devbyteviewer.network.Network
+import com.example.android.devbyteviewer.network.asDatabaseModel
+import kotlinx.coroutines.*
+
+class VideosRepository(private val database: VideosDatabase) {
+
+    private val repositoryJob = Job()
+
+    private val scope = CoroutineScope(repositoryJob)
+
+    val videos: LiveData<List<Video>> = Transformations.map(database.videoDao.getVideos()) {
+        it.asDomainModel()
+    }
+
+    suspend fun refreshVideos() {
+
+        scope.launch {
+
+            withContext(Dispatchers.Main) {
+                val playlist = Network.devbytes.getPlaylist()
+                database.videoDao.insertAll(*playlist.asDatabaseModel())
+            }
+        }
+    }
+
+    fun clear(){
+        repositoryJob.cancel()
+    }
+}
