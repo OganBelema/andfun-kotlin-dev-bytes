@@ -16,3 +16,28 @@
  */
 
 package com.example.android.devbyteviewer.work
+
+import android.content.Context
+import androidx.work.CoroutineWorker
+import androidx.work.WorkerParameters
+import com.example.android.devbyteviewer.database.getDatabase
+import com.example.android.devbyteviewer.repository.VideosRepository
+
+class RefreshDataWork(applicationContext: Context, params: WorkerParameters):
+        CoroutineWorker(applicationContext, params){
+
+    override suspend fun doWork(): Payload {
+
+        val database = getDatabase(applicationContext)
+
+        val repository = VideosRepository(database)
+
+        return try {
+            repository.refreshVideos()
+            Payload(Result.SUCCESS)
+        } catch (exception: Exception){
+            Payload(Result.RETRY)
+        }
+    }
+
+}
