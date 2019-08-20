@@ -26,6 +26,10 @@ import com.example.android.devbyteviewer.repository.VideosRepository
 class RefreshDataWork(applicationContext: Context, params: WorkerParameters):
         CoroutineWorker(applicationContext, params){
 
+    companion object {
+        const val WORK_NAME = "RefreshDataWork"
+    }
+
     override suspend fun doWork(): Payload {
 
         val database = getDatabase(applicationContext)
